@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Fireball Island · 3 Meses (Tamara & David) 🧡</title>
+  <style>
+    :root {
+      --bg: #100b1a;
+      --panel: #1d142d;
+      --border: #ff9d42;
+      --cream: #fff7eb;
+      --mint: #6ef0be;
+    }
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      background: var(--bg); color: var(--cream);
+      font-family: "Courier New", Courier, monospace;
+      overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    #app {
+      width: 100%; max-width: 1060px; height: 100%; max-height: 780px;
+      display: flex; flex-direction: column; padding: 8px; gap: 6px;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--panel); border: 2px solid #48336a; border-radius: 10px;
+      padding: 6px 10px; gap: 8px; flex-wrap: wrap;
+    }
+    .brand { font-weight: bold; font-size: 13px; color: #ffb55c; }
+    .scroll-track { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+    .stop-btn {
+      width: 22px; height: 22px; border-radius: 5px; border: 2px solid #543c7c;
+      background: #2b1f42; color: #b7a4d6; font-size: 10px; font-weight: bold;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .stop-btn:hover { transform: scale(1.1); border-color: #ffb55c; }
+    .stop-btn.active { background: #ff7b3b; border-color: #fff6e5; color: #120d1d; }
+    .stop-btn.done { background: #3e2d5c; border-color: #6ef0be; color: #fff6e5; }
+    .hdr-right { display: flex; gap: 6px; }
+    button.mini {
+      background: #2e2147; color: var(--cream); border: 2px solid #5e448a;
+      border-radius: 6px; padding: 4px 8px; font-family: inherit; font-size: 11px; font-weight: bold; cursor: pointer;
+    }
+    button.mini:hover { border-color: var(--border); }
+    button.mini.ar { border-color: #4ad9b8; color: #8fffe5; }
+
+    .stage-wrap {
+      position: relative; flex: 1; min-height: 0;
+      background: #09060f; border: 3px solid #4e3773; border-radius: 12px;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.7);
+    }
+    canvas#game {
+      width: 100%; height: 100%; object-fit: contain;
+      image-rendering: pixelated; image-rendering: crisp-edges;
+      cursor: pointer;
+    }
+    .scroll-hint {
+      position: absolute; right: 10px; top: 10px;
+      background: rgba(18,13,29,0.85); border: 1px solid #6b4e9c;
+      padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #ffd99c;
+      pointer-events: none;
+    }
+    #hud-bottom {
+      background: var(--panel); border: 2px solid var(--border); border-radius: 10px;
+      padding: 8px 12px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .hud-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    #loc-name { font-weight: bold; font-size: 13px; color: #ffb55c; }
+    #loc-hint { font-size: 11px; color: var(--mint); }
+    #loc-desc { font-size: 12.5px; line-height: 1.35; color: var(--cream); }
+
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .dpad { display: flex; gap: 4px; align-items: center; }
+    button.ctrl {
+      background: #31234a; color: var(--cream); border: 2px solid #6c4f9c;
+      border-radius: 8px; padding: 7px 12px; font-family: inherit;
+      font-size: 13px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 3px 0 #160e24;
+    }
+    button.ctrl:active { transform: translateY(2px); box-shadow: 0 1px 0 #160e24; }
+    button.ctrl.act { background: #d45526; border-color: #ffb86b; color: #fff; }
+    button.ctrl.go { background: #267a5e; border-color: #6ef0be; color: #fff; }
+
+    .modal {
+      position: fixed; inset: 0; background: rgba(10, 6, 18, 0.9);
+      display: none; align-items: center; justify-content: center; z-index: 50; padding: 14px;
+    }
+    .modal.open { display: flex; }
+    .card {
+      background: #1b1329; border: 3px solid #ffb55c; border-radius: 14px;
+      max-width: 720px; width: 100%; padding: 14px; text-align: center;
+      box-shadow: 0 0 40px rgba(255, 140, 60, 0.35);
+      max-height: 94vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+    }
+    .card h2 { margin: 0; color: #ffb55c; font-size: 17px; }
+    .card p { margin: 0; font-size: 13px; line-height: 1.48; color: var(--cream); }
+    canvas#closeup {
+      width: 100%; max-width: 660px; aspect-ratio: 16 / 9; margin: 0 auto;
+      border: 3px solid #4c3670; border-radius: 8px; background: #0c0814;
+      image-rendering: pixelated; image-rendering: crisp-edges; cursor: pointer;
+    }
+    .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+    #ar-overlay { position: fixed; inset: 0; z-index: 60; display: none; background: #000; }
+    #ar-overlay.open { display: block; }
+    #ar-hud {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      z-index: 70; display: none; gap: 8px; background: rgba(20,14,28,0.86);
+      padding: 8px 12px; border-radius: 10px; border: 2px solid #ffb35c;
+    }
+    #ar-hud.open { display: flex; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">🧡 FIREBALL ISLAND · 3 MESES</div>
+    <div class="scroll-track" id="stops"></div>
+    <div class="hdr-right">
+      <button class="mini" id="btn-mute">🔊 Sonido</button>
+      <button class="mini ar" id="btn-ar">🕶️ AR Quest 3</button>
+    </div>
+  </header>
+
+  <div class="stage-wrap">
+    <canvas id="game" width="480" height="270"></canvas>
+    <div class="scroll-hint">↕️ Scroll, Flechas o Clic para recorrer el camino</div>
+  </div>
+
+  <div id="hud-bottom">
+    <div class="hud-top">
+      <span id="loc-name">Cargando isla...</span>
+      <span id="loc-hint"></span>
+    </div>
+    <div id="loc-desc"></div>
+    <div class="controls">
+      <div class="dpad">
+        <button class="ctrl" id="b-left">◀</button>
+        <button class="ctrl" id="b-up">▲</button>
+        <button class="ctrl" id="b-down">▼</button>
+        <button class="ctrl" id="b-right">▶</button>
+      </div>
+      <div class="dpad">
+        <button class="ctrl act" id="b-act">⚡ Ver / Interactuar</button>
+        <button class="ctrl go" id="b-next">Subir al sgte ▲</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Vista Ampliada -->
+<div class="modal" id="zoom-modal">
+  <div class="card">
+    <h2 id="zm-title">Recuerdo</h2>
+    <canvas id="closeup" width="320" height="180"></canvas>
+    <p id="zm-text"></p>
+    <div class="btns" id="zm-btns"></div>
+  </div>
+</div>
+
+<!-- Carta Final -->
+<div class="modal" id="letter-modal">
+  <div class="card">
+    <h2>✨ ¡Felices 3 Meses Amorcitoooo&lt;333! ✨</h2>
+    <p style="font-size:24px;">🐱 🎪 🔥 🌊 🤡 ⛺ 🌠 🧡</p>
+    <p>
+      Quise armar esto con píxeles de la <strong>Fire</strong> para recorrer todo lo hermoso que hemos vivido hasta ahora en estos 3 meses que no ha sido poco jjj pero estos son unos poquitos: tú en mi depa en el trape, Pyts Park, La Copa, La Higuera, Curiñanco(?), el mano a mano y nuestro Halloween&lt;3.
+    </p>
+    <p style="background:#2a1d40; padding:12px; border-radius:10px; border:2px dashed #ff9c42;">
+      Estoy tan feliz contigo y tan agradecido de la vida por haberte conocido y por permitirme ser tu compañero, siento que haber coincidido contigo en esta vida es lo que necesitaba mi corazón y mi alma. Te amo mi amor, perdón lo ñoño jjj y lo más lindo se viene: <strong>finde de campamento juntitosss</strong>. Te amo muchísimo mi amor."
+      <br><br>— TAMARA &amp; DAVID  🧡
+    </p>
+    <div class="btns">
+      <button class="ctrl" onclick="closeLetter(); jumpToStop(0);">🔄 Volver al inicio</button>
+      <button class="ctrl act" onclick="closeLetter(); openARPreview();">🕶️ Galería 3D / AR</button>
+      <button class="ctrl go" onclick="closeLetter();">Seguir explorando</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal AR Quest 3 -->
+<div class="modal" id="ar-modal">
+  <div class="card">
+    <h2>🕶️ Modo Pixel Art AR (Meta Quest 3)</h2>
+    <p id="ar-status-text">Verificando WebXR...</p>
+    <p style="font-size:12px; color:#cbb9e3;">
+      Para ver los recuerdos flotando en tu pieza con las cámaras a color de tus <strong>Meta Quest 3</strong>, abre este archivo desde un link <strong>HTTPS</strong> (por ejemplo en <em>Netlify Drop</em> o <em>GitHub Pages</em>).
+    </p>
+    <div class="btns">
+      <button class="ctrl go" id="btn-start-webxr" style="display:none;">🚀 Entrar en AR (Quest 3)</button>
+      <button class="ctrl act" id="btn-start-3d">✨ Vista Previa 3D (PC/Móvil)</button>
+      <button class="ctrl" onclick="document.getElementById('ar-modal').classList.remove('open');">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="ar-overlay"></div>
+<div id="ar-hud">
+  <button class="ctrl" id="ar-prev">◀ Recuerdo</button>
+  <button class="ctrl go" id="ar-next">Recuerdo ▶</button>
+  <button class="ctrl act" id="ar-exit">✖ Salir</button>
+</div>
+
+<script>
+(() => {
+  const W = 480, H = 270;
+  const MAP_W = 480, MAP_H = 2480;
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  const zCanvas = document.getElementById("closeup");
+  const zCtx = zCanvas.getContext("2d");
+  zCtx.imageSmoothingEnabled = false;
+
+  // Buffer para siluetas de pixel art con contorno
+  const sprC = document.createElement("canvas");
+  sprC.width = 180; sprC.height = 160;
+  const sctx = sprC.getContext("2d");
+  sctx.imageSmoothingEnabled = false;
+
+  function withOutline(targetCtx, drawFn, ox = 0, oy = 0, ink = [20, 14, 28]) {
+    sctx.clearRect(0, 0, 180, 160);
+    sctx.save();
+    drawFn(sctx);
+    sctx.restore();
+    const img = sctx.getImageData(0, 0, 180, 160);
+    const d = img.data;
+    for (let i = 3; i < d.length; i += 4) d[i] = d[i] > 110 ? 255 : 0;
+    const out = new Uint8ClampedArray(d);
+    for (let y = 1; y < 159; y++) {
+      for (let x = 1; x < 179; x++) {
+        const i = (y * 180 + x) * 4;
+        if (d[i + 3] === 0) {
+          if (d[i - 4 + 3] === 255 || d[i + 4 + 3] === 255 || d[i - 720 + 3] === 255 || d[i + 720 + 3] === 255) {
+            out[i] = ink[0]; out[i + 1] = ink[1]; out[i + 2] = ink[2]; out[i + 3] = 255;
+          }
+        }
+      }
+    }
+    img.data.set(out);
+    sctx.putImageData(img, 0, 0);
+    targetCtx.drawImage(sprC, Math.round(ox), Math.round(oy));
+  }
+
+  // Helpers de dibujo pixel art
+  const px = (c, x, y, w, h, col) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+  const circ = (c, cx, cy, r, col) => {
+    c.fillStyle = col;
+    for (let dy = -r; dy <= r; dy++)
+      for (let dx = -r; dx <= r; dx++)
+        if (dx*dx + dy*dy <= r*r) c.fillRect(Math.round(cx+dx), Math.round(cy+dy), 1, 1);
+  };
+  const limb = (c, x1, y1, x2, y2, width, col) => {
+    c.strokeStyle = col; c.lineWidth = width; c.lineCap = "round"; c.lineJoin = "round";
+    c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+  };
+
+  // ================= AUDIO 8-BIT =================
+  let audioCtx = null, muted = false, musicTimer = null, stepIdx = 0;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  }
+  function tone(freq, dur = 0.11, type = "triangle", vol = 0.06, slide = 0) {
+    if (muted) return;
+    try {
+      ensureAudio();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      if (slide) o.frequency.exponentialRampToValueAtTime(slide, audioCtx.currentTime + dur);
+      g.gain.setValueAtTime(vol, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch {}
+  }
+  const sfxMeow  = () => { tone(540, 0.08, "triangle", 0.08, 800); setTimeout(() => tone(800, 0.15, "triangle", 0.08, 520), 75); };
+  const sfxSlap  = () => { tone(320, 0.06, "sawtooth", 0.14, 70); setTimeout(() => tone(920, 0.09, "square", 0.09, 440), 40); };
+  const sfxHit   = () => tone(150, 0.14, "sawtooth", 0.12, 50);
+  const sfxHeart = () => { tone(523, 0.08); setTimeout(() => tone(659, 0.08), 70); setTimeout(() => tone(784, 0.13), 140); };
+
+  const bgm = [392, 440, 493.88, 587.33, 523.25, 493.88, 440, 392, 329.63, 392, 440, 523.25, 493.88, 440, 392, 392];
+  function startMusic() {
+    if (musicTimer) return;
+    musicTimer = setInterval(() => {
+      if (!muted && audioCtx && audioCtx.state === "running") {
+        tone(bgm[stepIdx % bgm.length], 0.22, "triangle", 0.024);
+        stepIdx++;
+      }
+    }, 310);
+  }
+  document.getElementById("btn-mute").onclick = () => {
+    muted = !muted;
+    document.getElementById("btn-mute").textContent = muted ? "🔇 Silencio" : "🔊 Sonido";
+  };
+
+  // ================= PARADAS =================
+  const STOPS = [
+    { id: 0,  x: 240, y: 2335, name: "0. Muelle · Notebook", hint: "Espacio/Clic para despertar", desc: "(Yo durmiendo acurrucada sobre el notebook (del humano)). ¡Despertemos y sigamos!" },
+    { id: 1,  x: 240, y: 2115, name: "1. Trapecio en el Depa", hint: "Espacio/Clic para ver de cerca", desc: "Simplemente WOW: Es tan bella mi humana." },
+    { id: 2,  x: 240, y: 1895, name: "2. Pyts Park", hint: "Espacio/Clic para lanzar chispas", desc: "K puto miedo: fuego, autos, el humano en monociclo y más fuego. Vamos antes q me queme" },
+    { id: 3,  x: 240, y: 1675, name: "3. Cocina · Trampa Watita", hint: "Espacio/Clic ¡hazle cariño!", desc: "(Yo en cocina jjj) ¡Hazme cariño!" },
+    { id: 4,  x: 240, y: 1455, name: "4. Entrenando en La Copa", hint: "Espacio/Clic para ver de cerca", desc: "La copa k lindo lugar" },
+    { id: 5,  x: 240, y: 1235, name: "5. Tu Show · Sirve malabares", hint: "Espacio/Clic para aplaudir 👏", desc: "Se va a comer esa clava? ñam ñam ñam" },
+    { id: 6,  x: 240, y: 1015, name: "6. Curiñanco, Valdivia", hint: "Espacio/Clic para ver el paisaje", desc: "Yo también quería ir :(" },
+    { id: 7,  x: 240, y: 795,  name: "7. Mano a Mano", hint: "Espacio/Clic para ver de cerca", desc: "Mi humana no tiene huesos confirmado" },
+    { id: 8,  x: 240, y: 575,  name: "8. ¡Jefe! ROBOT IA", hint: "Espacio/Clic ¡Pelea con el robot!", desc: "Mira robot y la con...(le pega)" },
+    { id: 9,  x: 240, y: 355,  name: "9. Halloween", hint: "Espacio/Clic para ver disfraces", desc: "Halloween de circooooo" },
+    { id: 10, x: 240, y: 135,  name: "10. Próxima Aventura · Campamento ⛺", hint: "Espacio/Clic para ver estrellas & Carta 💌", desc: "Nuestro próximo fin de semana en el cerrito junto a la fogata para ver las estrellas juntitos." }
+  ];
+
+  let t = 0, camY = MAP_H - H;
+  let activeModal = null;
+  let cat = { x: 240, y: 2375, dir: 2, moving: false };
+  let targetWalk = null, activeStop = 0, visited = new Set([0]);
+  let zParticles = [], keys = { u: false, d: false, l: false, r: false };
+
+  let notebookClicks = 0;
+  let watitaPets = 0, watitaSlap = 0, watitaFlee = false, watitaRunX = 160, watitaLocked = false;
+  let boss = { catX: 68, catY: 148, catVY: 0, catHP: 5, inv: 0, atkT: 0, slashX: 0, slashY: 0, robX: 244, robHP: 5, hitT: 0, cd: 60, blips: [], done: false };
+
+  const thumbCache = new Map();
+
+  const stopsEl = document.getElementById("stops");
+  STOPS.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.className = "stop-btn" + (i === 0 ? " active" : "");
+    b.textContent = i === 10 ? "⛺" : i;
+    b.title = s.name;
+    b.onclick = () => jumpToStop(i);
+    stopsEl.appendChild(b);
+  });
+
+  function updateHUD() {
+    let best = 0, bestD = 99999;
+    STOPS.forEach((s, i) => {
+      const d = Math.hypot(cat.x - s.x, cat.y - s.y);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    activeStop = best;
+    visited.add(best);
+    const s = STOPS[best];
+    document.getElementById("loc-name").textContent = s.name;
+    document.getElementById("loc-hint").textContent = s.hint;
+    document.getElementById("loc-desc").textContent = s.desc;
+    [...stopsEl.children].forEach((b, i) => {
+      b.className = "stop-btn" + (i === best ? " active" : visited.has(i) ? " done" : "");
+    });
+    document.getElementById("b-next").style.display = best < 10 ? "inline-block" : "none";
+  }
+
+  window.jumpToStop = (idx) => {
+    ensureAudio(); startMusic();
+    const s = STOPS[Math.max(0, Math.min(STOPS.length - 1, idx))];
+    cat.x = s.x; cat.y = s.y + 24; cat.dir = 2;
+    targetWalk = null;
+    camY = Math.max(0, Math.min(MAP_H - H, cat.y - H * 0.56));
+    updateHUD();
+  };
+
+  // ================= GATA FIREBALL =================
+  function drawFireballChibi(c, x, y, dir, animT, moving, scale = 1, sleeping = false, belly = false, slap = 0, atk = 0) {
+    c.save();
+    c.translate(Math.round(x), Math.round(y));
+    c.scale(scale, scale);
+
+    c.fillStyle = "rgba(16,10,26,0.3)";
+    c.beginPath();
+    c.ellipse(0, 0, 14, 4, 0, 0, Math.PI * 2);
+    c.fill();
+
+    if (sleeping) {
+      withOutline(c, sc => {
+        limb(sc, 22, 34, 58, 34, 11, "#ea721d");
+        px(sc, 28, 30, 2, 4, "#b04410"); px(sc, 36, 29, 2, 5, "#b04410"); px(sc, 45, 30, 2, 4, "#b04410");
+        limb(sc, 54, 35, 66, 36, 4, "#ea721d"); px(sc, 63, 35, 4, 3, "#fff2e2");
+        limb(sc, 24, 36, 16, 37, 4, "#ea721d"); px(sc, 14, 36, 4, 3, "#fff2e2");
+        sc.strokeStyle = "#ea721d"; sc.lineWidth = 3;
+        sc.beginPath(); sc.moveTo(18, 34); sc.quadraticCurveTo(8, 32, 10, 22); sc.stroke();
+        px(sc, 9, 21, 3, 3, "#fff2e2");
+        circ(sc, 52, 28, 8, "#f68a28");
+        px(sc, 48, 20, 3, 5, "#ea721d"); px(sc, 49, 21, 2, 3, "#ffadc0");
+        px(sc, 56, 20, 3, 5, "#ea721d"); px(sc, 57, 21, 2, 3, "#ffadc0");
+        circ(sc, 54, 30, 4, "#fff2e2");
+        px(sc, 50, 27, 3, 1, "#181022"); px(sc, 55, 27, 3, 1, "#181022");
+        px(sc, 54, 29, 2, 1, "#ff6e91");
+      }, -38, -36);
+
+      const zy = -18 - ((animT * 0.18) % 10);
+      c.fillStyle = "#ffdd80"; c.font = "bold 8px monospace"; c.fillText("Zzz...", 10, zy);
+      c.restore(); return;
+    }
+
+    if (belly) {
+      withOutline(c, sc => {
+        const tw = Math.sin(animT * 0.2) * 3;
+        sc.strokeStyle = "#ea721d"; sc.lineWidth = 3.5;
+        sc.beginPath(); sc.moveTo(18, 32); sc.quadraticCurveTo(8, 26 + tw, 12, 14); sc.stroke();
+        px(sc, 11, 13, 3, 3, "#fff2e2");
+        limb(sc, 22, 33, 56, 33, 11, "#ea721d");
+        limb(sc, 26, 31, 52, 31, 8, "#fff3e6");
+
+        // Las 4 patas hacia arriba: relajadas (recogidas abajo) o estiradas hacia arriba al tocarla
+        if (slap > 0) {
+          // Estira las 4 patas bien hacia arriba
+          limb(sc, 45, 29, 49, 10, 3.5, "#ea721d"); px(sc, 47, 8, 4, 3, "#fff2e2");
+          limb(sc, 37, 29, 34, 11, 3.5, "#ea721d"); px(sc, 33, 9, 4, 3, "#fff2e2");
+          limb(sc, 23, 30, 17, 12, 4, "#ea721d");   px(sc, 15, 10, 4, 3, "#fff2e2");
+          limb(sc, 28, 30, 26, 13, 3.5, "#ea721d"); px(sc, 24, 11, 4, 3, "#fff2e2");
+        } else {
+          // Relajada: patas apuntando hacia arriba pero bajitas/recogidas
+          limb(sc, 45, 29, 45, 22, 3.5, "#ea721d"); px(sc, 44, 20, 4, 3, "#fff2e2");
+          limb(sc, 37, 29, 36, 23, 3.5, "#ea721d"); px(sc, 35, 21, 4, 3, "#fff2e2");
+          limb(sc, 23, 30, 20, 23, 4, "#ea721d");   px(sc, 18, 21, 4, 3, "#fff2e2");
+          limb(sc, 28, 30, 27, 24, 3.5, "#ea721d"); px(sc, 25, 22, 4, 3, "#fff2e2");
+        }
+
+        // Cabeza y cambio de color de ojos / expresión al tocarla
+        circ(sc, 58, 29, 8, "#f68a28");
+        px(sc, 56, 20, 3, 5, "#ea721d"); px(sc, 57, 21, 2, 3, "#ffb5c5");
+        px(sc, 63, 21, 3, 5, "#ea721d"); px(sc, 64, 22, 2, 3, "#ffb5c5");
+        circ(sc, 61, 30, 4, "#fff2e2");
+        if (slap > 0) {
+          // Ojos cambian a amarillo/rojo con expresión fiera/sorprendida + boquita abierta
+          px(sc, 55, 25, 4, 3, "#ff3b30"); px(sc, 61, 25, 4, 3, "#ff3b30");
+          px(sc, 56, 26, 2, 2, "#ffeb3b"); px(sc, 62, 26, 2, 2, "#ffeb3b");
+          px(sc, 56, 24, 3, 1, "#111");    px(sc, 62, 24, 3, 1, "#111"); // Cejas enojadas
+          px(sc, 60, 31, 2, 2, "#b82545"); // Boquita abierta
+        } else {
+          px(sc, 57, 27, 2, 2, "#4eb83b"); px(sc, 62, 27, 2, 2, "#4eb83b");
+          px(sc, 57, 27, 1, 1, "#fff");    px(sc, 62, 27, 1, 1, "#fff");
+        }
+        px(sc, 60, 30, 2, 1, "#ff648a");
+      }, -40, -36);
+
+      c.restore(); return;
+    }
+
+    const bob = moving ? Math.abs(Math.round(Math.sin(animT * 0.35) * 2)) : 0;
+    const legSw = moving ? Math.round(Math.sin(animT * 0.4) * 3) : 0;
+    const flip = (dir === 1) ? -1 : 1;
+    c.scale(flip, 1);
+
+    withOutline(c, sc => {
+      const tailW = Math.round(Math.sin(animT * 0.16) * 3);
+      sc.strokeStyle = "#ea721d"; sc.lineWidth = 3.2; sc.lineCap = "round";
+      sc.beginPath();
+      if (dir === 2) {
+        sc.moveTo(38, 30 - bob); sc.quadraticCurveTo(46 + tailW, 18, 40 + tailW, 9);
+      } else {
+        sc.moveTo(24, 28 - bob); sc.quadraticCurveTo(12, 20 + tailW, 14, 10 + tailW);
+      }
+      sc.stroke();
+      if (dir === 2) px(sc, 39 + tailW, 8, 3, 3, "#fff2e2");
+      else px(sc, 13, 9 + tailW, 3, 3, "#fff2e2");
+
+      limb(sc, 26, 28 - bob, 46, 28 - bob, 9, "#f68a28");
+      px(sc, 30, 24 - bob, 2, 5, "#b04410");
+      px(sc, 36, 24 - bob, 2, 6, "#b04410");
+      px(sc, 42, 25 - bob, 2, 5, "#b04410");
+      if (dir !== 2) px(sc, 31, 29 - bob, 12, 4, "#fff2e2");
+
+      limb(sc, 28 + legSw, 32, 28 + legSw, 39, 3.2, "#ea721d"); px(sc, 27 + legSw, 38, 3, 2, "#fff2e2");
+      limb(sc, 34 - legSw, 32, 34 - legSw, 39, 3.2, "#ea721d"); px(sc, 33 - legSw, 38, 3, 2, "#fff2e2");
+      limb(sc, 42 - legSw, 32, 42 - legSw, 39, 3.2, "#ea721d"); px(sc, 41 - legSw, 38, 3, 2, "#fff2e2");
+      limb(sc, 48 + legSw, 32, 48 + legSw, 39, 3.2, "#ea721d"); px(sc, 47 + legSw, 38, 3, 2, "#fff2e2");
+
+      circ(sc, 48, 20 - bob, 8, "#f68a28");
+      px(sc, 44, 9 - bob, 3, 6, "#ea721d"); px(sc, 45, 11 - bob, 2, 3, "#ffb5c5");
+      px(sc, 52, 9 - bob, 3, 6, "#ea721d"); px(sc, 53, 11 - bob, 2, 3, "#ffb5c5");
+
+      if (dir !== 2) {
+        circ(sc, 51, 22 - bob, 4, "#fff2e2");
+        px(sc, 46, 18 - bob, 3, 4, "#130f1a"); px(sc, 52, 18 - bob, 3, 4, "#130f1a");
+        px(sc, 47, 19 - bob, 2, 2, "#50c238"); px(sc, 53, 19 - bob, 2, 2, "#50c238");
+        px(sc, 47, 18 - bob, 1, 1, "#fff");    px(sc, 53, 18 - bob, 1, 1, "#fff");
+        px(sc, 50, 22 - bob, 2, 1, "#ff648a");
+        px(sc, 42, 21 - bob, 3, 1, "#ffe7cc"); px(sc, 55, 21 - bob, 3, 1, "#ffe7cc");
+      }
+
+      if (atk > 0) {
+        limb(sc, 50, 22, 66, 16, 4, "#ea721d");
+        px(sc, 64, 14, 5, 4, "#fff2e2");
+      }
+    }, -35, -38);
+
+    c.restore();
+  }
+
+  // ================= ESCENAS PIXEL ART =================
+  function renderMemoryScene(c, idx, cw, ch, animT, interactive = false) {
+    c.clearRect(0, 0, cw, ch);
+
+    if (idx === 0) {
+      // 0. Notebook + Pensamiento "...parece que no."
+      px(c, 0, 0, cw, ch, "#252130");
+      for (let x = 0; x < cw; x += 22) { circ(c, x + 8, 20, 5, "#383347"); circ(c, x + 16, 50, 4, "#d2cee0"); }
+      px(c, 46, 14, 228, 102, "#14101d"); px(c, 48, 16, 224, 98, "#1a1d29");
+      px(c, 54, 22, 212, 86, "#1557bf");
+      circ(c, 100, 54, 15, "#7eb1f5"); circ(c, 100, 50, 5, "#1557bf"); px(c, 92, 59, 16, 7, "#1557bf");
+      c.fillStyle = "#e6f0ff"; c.font = "bold 9px monospace"; c.fillText("David Bravo", 70, 84);
+      px(c, 32, 116, 256, 54, "#14101d"); px(c, 34, 118, 252, 50, "#bcc3d1");
+      px(c, 42, 120, 236, 46, "#959db0");
+      for (let r = 0; r < 4; r++) for (let k = 0; k < 14; k++) px(c, 52 + k * 15, 123 + r * 8, 12, 6, "#282c38");
+      px(c, 124, 156, 72, 8, "#cfd6e3");
+      drawFireballChibi(c, 160, 145, 0, animT, false, 1.35, true);
+
+      if (notebookClicks >= 3) {
+        px(c, 98, 26, 128, 26, "#ffffff");
+        px(c, 96, 28, 132, 22, "#ffffff");
+        circ(c, 156, 56, 3.5, "#ffffff");
+        circ(c, 152, 62, 2, "#ffffff");
+        c.fillStyle = "#181022"; c.font = "bold 9px monospace";
+        c.fillText("...parece que no.", 108, 42);
+      }
+    }
+
+    else if (idx === 1) {
+      // 1. Trapecio centrada en la barra
+      px(c, 0, 0, cw, 148, "#dbd2be");
+      for (let x = 0; x < cw; x += 14) { px(c, x, 0, 7, 148, "#c7bba2"); px(c, x + 7, 0, 7, 148, "#ebdcc4"); }
+      px(c, 24, 20, 48, 96, "#130f1c"); px(c, 26, 22, 44, 92, "#182033");
+      px(c, 0, 148, cw, 32, "#663e26");
+
+      const sw = Math.sin(animT * 0.05) * 2;
+      px(c, 116 + sw, 0, 3, 62, "#f4efe6");
+      px(c, 204 + sw, 0, 3, 62, "#f4efe6");
+      px(c, 110 + sw, 62, 100, 4, "#ffffff");
+
+      withOutline(c, sc => {
+        limb(sc, 50, 63, 30, 92, 7, "#1c1e29");
+        limb(sc, 44, 63, 38, 98, 6.5, "#1c1e29");
+        px(sc, 26, 92, 5, 4, "#111"); px(sc, 34, 98, 5, 4, "#111");
+        limb(sc, 50, 63, 68, 62, 9, "#15151e");
+        limb(sc, 68, 62, 86, 86, 4, "#dfa382");
+        limb(sc, 54, 60, 46, 44, 4, "#dfa382");
+        circ(sc, 76, 68, 6, "#dfa382");
+        limb(sc, 75, 72, 75, 100, 8, "#211619");
+        limb(sc, 78, 70, 80, 96, 5, "#211619");
+      }, 104 + sw, 2);
+
+      circ(c, 150, 160, 4, "#fff"); circ(c, 157, 162, 4, "#fff"); circ(c, 164, 160, 4, "#fff");
+      if (interactive) drawFireballChibi(c, 52, 154, 3, animT, false, 1.15);
+    }
+
+    else if (idx === 2) {
+      // 2. Pyts Park
+      px(c, 0, 0, cw, 146, "#0f0b17");
+      px(c, 0, 146, cw, 34, "#26202b");
+      for (let x = 6; x < cw; x += 15) {
+        const ly = 32 + Math.round(Math.sin(x * 0.04) * 12);
+        px(c, x, ly, 3, 3, "#ffeaa7");
+      }
+      for (let i = 0; i < 7; i++) {
+        const hx = (i * 54 + animT * 0.8) % (cw + 40) - 20;
+        circ(c, hx, 134 + Math.sin(i + animT * 0.06) * 4, 17, "rgba(200,185,175,0.12)");
+      }
+      const c1 = 44 + Math.sin(animT * 0.06) * 20;
+      withOutline(c, sc => {
+        px(sc, 10, 22, 42, 13, "#215f9e"); px(sc, 18, 14, 22, 9, "#184472");
+        circ(sc, 19, 35, 5, "#18181f"); circ(sc, 43, 35, 5, "#18181f");
+      }, c1, 106);
+      px(c, c1 + 46, 131, 14, 4, "rgba(255,240,170,0.5)");
+
+      for (let i = 0; i < 14; i++) {
+        const fx = 98 + i * 9, fh = 7 + ((i + Math.floor(animT / 3)) % 6);
+        px(c, fx, 149 - fh, 5, fh, "#ff5511"); px(c, fx + 1, 149 - fh + 1, 3, fh - 2, "#ffdd55");
+      }
+
+      const mx = 160 + Math.round(Math.sin(animT * 0.08) * 3);
+      withOutline(c, sc => {
+        circ(sc, 40, 84, 10, "#9aa3b0"); circ(sc, 40, 84, 6, "#0f0b17");
+        limb(sc, 40, 64, 40, 84, 2, "#fff");
+        limb(sc, 38, 58, 35, 76, 5, "#1a1b24"); limb(sc, 42, 58, 45, 78, 5, "#1a1b24");
+        px(sc, 33, 38, 14, 21, "#181820"); px(sc, 36, 40, 8, 16, "#3a3a4a");
+        limb(sc, 34, 42, 22, 48, 4, "#181820"); limb(sc, 46, 42, 58, 46, 4, "#181820");
+        circ(sc, 40, 28, 6, "#dfa382"); px(sc, 34, 21, 12, 5, "#181212");
+        px(sc, 39, 27, 2, 2, "#111"); px(sc, 42, 27, 2, 2, "#111");
+        px(sc, 38, 30, 4, 2, "#181212");
+      }, mx - 40, 54);
+
+      for (let k = 0; k < 3; k++) {
+        const a = animT * 0.14 + k * 2.09;
+        const tx = mx + Math.cos(a) * 22, ty = 76 + Math.sin(a) * 14;
+        px(c, tx, ty, 2, 7, "#eee"); circ(c, tx + 1, ty - 2, 4, "#ff6600"); px(c, tx, ty - 3, 2, 2, "#fff57a");
+      }
+      if (interactive) drawFireballChibi(c, 32, 154, 3, animT, false, 1.15);
+    }
+
+    else if (idx === 3) {
+      // 3. ★ COCINA · TRAMPA WATITA: PATAS ARRIBA, ESTIRA AL TOCAR, GLOBO "¡ATRÁS!" Y SALE CORRIENDO ★
+      px(c, 0, 0, cw, 148, "#ede4cf");
+      for (let y = 56; y < 108; y += 10) px(c, 0, y, cw, 1, "#d4c8af");
+      for (let x = 0; x < cw; x += 14) px(c, x, 56, 1, 52, "#d4c8af");
+      px(c, 20, 10, 80, 44, "#94633e"); px(c, 216, 10, 86, 44, "#94633e");
+      px(c, 0, 108, cw, 40, "#b88358");
+      px(c, 0, 148, cw, 32, "#744d32");
+      px(c, 68, 16, 184, 22, "#1c142c");
+      c.fillStyle = "#ffd670"; c.font = "8px monospace";
+      c.fillText(watitaPets < 3 ? `HAZ CLIC EN LA WATITA (${watitaPets}/3)` : "¡ERA UNA TRAMPA! TE AMO 🧡", 76, 30);
+
+      if (watitaFlee) {
+        // Sale corriendo rápido hacia la derecha para sacarte del recuerdo
+        drawFireballChibi(c, watitaRunX, 152, 3, animT * 2, true, 1.35);
+      } else {
+        drawFireballChibi(c, 160, 152, 0, animT, false, 1.45, false, true, watitaSlap);
+
+        // Globo de advertencia "¡ATRÁS!" después de unos clics
+        if (watitaPets >= 3) {
+          px(c, 164, 72, 76, 22, "#ffffff");
+          px(c, 162, 74, 80, 18, "#ffffff");
+          circ(c, 186, 97, 3, "#ffffff");
+          circ(c, 182, 103, 2, "#ffffff");
+          c.fillStyle = "#d92020"; c.font = "bold 10px monospace";
+          c.fillText("¡ATRÁS!", 176, 86);
+        }
+      }
+    }
+
+    else if (idx === 4) {
+      // 4. Entrenando en La Copa
+      px(c, 0, 0, cw, 146, "#15131c");
+      for (let y = 10; y < 140; y += 24) {
+        px(c, 0, y, cw, 1, "#282536");
+        for (let x = 12; x < cw; x += 32) circ(c, x, y, 1.5, "#48435e");
+      }
+      px(c, 14, 46, 128, 54, "#0b0a10");
+      c.fillStyle = "#f2ede4"; c.font = "bold 24px 'Courier New', monospace"; c.fillText("OKUPA", 24, 82);
+
+      px(c, 148, 54, 76, 66, "#224075");
+      for (let y = 58; y < 118; y += 6) px(c, 148, y, 76, 2.5, "#6888cb");
+      px(c, 0, 146, cw, 34, "#242028");
+
+      px(c, 100, 134, 156, 18, "#183a2b");
+      px(c, 100, 134, 156, 3, "#275e46");
+      px(c, 100, 149, 156, 3, "#10261c");
+
+      const sw = Math.sin(animT * 0.04) * 2;
+      px(c, 178 + sw, 0, 2.5, 42, "#8f7cb8");
+      c.strokeStyle = "#e8effc"; c.lineWidth = 2.5;
+      c.beginPath(); c.arc(179 + sw, 64, 22, 0, Math.PI * 2); c.stroke();
+
+      withOutline(c, sc => {
+        limb(sc, 44, 42, 42, 64, 7, "#171a24");
+        limb(sc, 42, 64, 56, 72, 7, "#171a24");
+        px(sc, 41, 38, 5, 4, "#ffffff");
+        limb(sc, 40, 66, 38, 86, 10, "#191e30");
+        limb(sc, 38, 74, 26, 80, 4, "#191e30");
+        circ(sc, 38, 91, 5, "#dfa382");
+        limb(sc, 38, 95, 38, 109, 7, "#211619");
+      }, 138 + sw, 0);
+
+      withOutline(c, sc => {
+        limb(sc, 24, 56, 22, 74, 5, "#222530"); limb(sc, 30, 56, 32, 74, 5, "#222530");
+        px(sc, 18, 73, 6, 3, "#ffffff"); px(sc, 30, 73, 6, 3, "#ffffff");
+        px(sc, 20, 36, 14, 21, "#1c1e26");
+        limb(sc, 21, 40, 13, 30, 4, "#dfa382");
+        circ(sc, 27, 30, 5, "#dfa382"); px(sc, 22, 24, 11, 4, "#181212");
+      }, 218, 62);
+
+      if (interactive) drawFireballChibi(c, 56, 154, 3, animT, false, 1.15);
+    }
+
+    else if (idx === 5) {
+      // 5. Tu Show de Garzón
+      px(c, 0, 0, cw, 148, "#141933");
+      px(c, 24, 8, 144, 140, "#9c1a22"); px(c, 188, 8, 108, 140, "#9c1a22");
+      for (let x = 34; x < 164; x += 16) px(c, x, 8, 5, 140, "#6e1117");
+      for (let x = 196; x < 290; x += 16) px(c, x, 8, 5, 140, "#6e1117");
+      px(c, 0, 148, cw, 32, "#3a2a30");
+      c.fillStyle = "rgba(255,230,170,0.16)";
+      c.beginPath(); c.moveTo(0,0); c.lineTo(192,148); c.lineTo(112,148); c.lineTo(0,44); c.fill();
+
+      const wob = Math.round(Math.sin(animT * 0.1) * 1);
+      withOutline(c, sc => {
+        limb(sc, 45, 58, 43, 86, 6, "#151d2e"); limb(sc, 53, 58, 55, 86, 6, "#151d2e");
+        px(sc, 39, 86, 7, 3, "#0e1017"); px(sc, 53, 86, 7, 3, "#0e1017");
+
+        px(sc, 41, 31, 16, 28, "#1e222e");
+        px(sc, 48, 32, 2, 24, "#353d54");
+        px(sc, 46, 30, 6, 3, "#dfe6f5");
+
+        limb(sc, 41, 34, 35, 44, 4.5, "#2b3245");
+        limb(sc, 35, 44, 26, 42, 4, "#2b3245");
+        px(sc, 23, 41, 4, 3, "#dfa382");
+        px(sc, 12, 40, 24, 2.5, "#f0f4fa");
+
+        px(sc, 23 + wob, 15, 3, 25, "#ffffff");
+        px(sc, 22 + wob, 16, 5, 12, "#74e3ff");
+
+        limb(sc, 57, 34, 62, 43, 4.5, "#2b3245");
+        limb(sc, 62, 43, 48, 40, 4, "#2b3245");
+        px(sc, 44, 38, 4, 3, "#dfa382");
+
+        circ(sc, 49, 22, 7, "#dfa382"); px(sc, 43, 14, 12, 5, "#181212");
+        px(sc, 46, 21, 2, 2, "#111"); px(sc, 51, 21, 2, 2, "#111");
+        px(sc, 47, 25, 4, 2, "#181212");
+      }, 116, 58);
+
+      if (interactive) drawFireballChibi(c, 56, 154, 3, animT, false, 1.2);
+    }
+
+    else if (idx === 6) {
+      // 6. Curiñanco, Valdivia
+      px(c, 0, 0, cw, 104, "#559ee3"); px(c, 0, 0, cw, 42, "#3b80c7");
+      c.strokeStyle = "rgba(255,248,220,0.45)"; c.lineWidth = 2;
+      c.beginPath(); c.arc(230, 44, 34, 0, Math.PI * 2); c.stroke();
+      circ(c, 230, 44, 8, "#fffdf0");
+      px(c, 0, 100, cw, 28, "#256385");
+      const wx = Math.round(Math.sin(animT * 0.05) * 4);
+      px(c, 80 + wx, 112, 102, 2, "#eaf7ff"); px(c, 100 - wx, 120, 114, 2, "#ffffff");
+      px(c, 0, 124, cw, 56, "#c0a786"); px(c, 0, 152, cw, 28, "#a68d6c");
+      c.fillStyle = "#3a692c"; c.beginPath(); c.moveTo(0,54); c.lineTo(128,132); c.lineTo(0,146); c.fill();
+
+      c.fillStyle = "#384234";
+      c.beginPath();
+      c.moveTo(176, 130); c.lineTo(192, 100); c.lineTo(208, 86);
+      c.lineTo(222, 72); c.lineTo(238, 84); c.lineTo(256, 108); c.lineTo(270, 130);
+      c.closePath(); c.fill();
+      c.fillStyle = "#4d5948";
+      c.beginPath(); c.moveTo(208, 86); c.lineTo(222, 72); c.lineTo(230, 96); c.lineTo(212, 104); c.closePath(); c.fill();
+      px(c, 214, 72, 18, 5, "#406b34");
+
+      c.fillStyle = "#1d241f";
+      c.beginPath();
+      c.moveTo(200, 130); c.lineTo(204, 110); c.lineTo(214, 100);
+      c.lineTo(228, 100); c.lineTo(238, 112); c.lineTo(240, 130); c.closePath(); c.fill();
+
+      c.fillStyle = "#090d11";
+      c.beginPath();
+      c.moveTo(204, 130); c.lineTo(207, 114); c.lineTo(214, 105);
+      c.lineTo(220, 109); c.lineTo(226, 105); c.lineTo(234, 115); c.lineTo(236, 130); c.closePath(); c.fill();
+      px(c, 204, 126, 32, 4, "#1e516e");
+      px(c, 207 + (wx >> 1), 127, 24, 2, "#8ad6ff");
+
+      px(c, 64, 144, 56, 9, "#7a634e");
+
+      withOutline(c, sc => {
+        px(sc, 10, 22, 13, 14, "#242c40");
+        circ(sc, 16, 16, 5, "#181212"); px(sc, 12, 18, 8, 3, "#3d2d24");
+        limb(sc, 21, 24, 28, 25, 3.5, "#242c40");
+      }, 66, 112);
+      withOutline(c, sc => {
+        px(sc, 10, 24, 12, 12, "#9c3e5e");
+        circ(sc, 16, 17, 5, "#211619");
+        limb(sc, 16, 19, 17, 32, 6, "#211619");
+      }, 86, 112);
+
+      if (interactive) drawFireballChibi(c, 148, 154, 0, animT, false, 1.15);
+    }
+
+    else if (idx === 7) {
+      // 7. ★ MANO A MANO: SIN BICI NI PERSONA AL FONDO, POLERA NEGRA MANGA CORTA Y PELO ARRIBA DE LA CABEZA DE ELLA ★
+      px(c, 0, 0, cw, 150, "#608562");
+      circ(c, 240, 90, 52, "#ffe8a3");
+      circ(c, 240, 90, 72, "rgba(255,232,163,0.22)");
+
+      px(c, 26, 0, 28, 150, "#3a2d22");
+      circ(c, 40, 22, 54, "#244424");
+      circ(c, 108, 16, 50, "#2c4e28");
+      px(c, 288, 10, 10, 140, "#4e3e30");
+      px(c, 266, 12, 50, 6, "#244a24");
+      px(c, 274, 6, 36, 6, "#31592c");
+
+      px(c, 0, 148, cw, 32, "#346628");
+      px(c, 0, 148, cw, 2, "#68a846");
+
+      withOutline(c, sc => {
+        // David: piernas limpias sin tatuajes, postura mantenida
+        limb(sc, 38, 70, 35, 90, 6.5, "#dfa382");
+        limb(sc, 35, 90, 32, 113, 6, "#dfa382");
+        limb(sc, 45, 70, 48, 90, 6, "#cf9170");
+        limb(sc, 48, 90, 47, 113, 5.5, "#cf9170");
+
+        px(sc, 27, 111, 11, 5, "#111116");
+        px(sc, 43, 111, 11, 5, "#111116");
+        px(sc, 25, 114, 13, 3, "#08080c");
+        px(sc, 42, 114, 13, 3, "#08080c");
+
+        px(sc, 29, 58, 25, 16, "#1f222b");
+        limb(sc, 36, 66, 36, 76, 8, "#1a1c24");
+        limb(sc, 46, 66, 46, 76, 8, "#15171e");
+
+        // Polera negra con manga corta (costado relleno en negro + manga corta en el brazo)
+        px(sc, 27, 32, 24, 28, "#111116");
+        limb(sc, 39, 36, 46, 40, 7, "#111116"); // Manga corta negra cubriendo hombro/parte superior del brazo
+
+        circ(sc, 37, 23, 6.5, "#dfa382");
+        px(sc, 29, 15, 14, 5, "#181212");
+        px(sc, 29, 19, 5, 5, "#181212");
+        px(sc, 30, 22, 4, 4, "#3a2a22");
+        px(sc, 41, 22, 2, 2, "#111");
+        px(sc, 41, 26, 4, 2, "#181212");
+        px(sc, 39, 29, 3, 2, "#181212");
+
+        limb(sc, 44, 39, 52, 42, 5.5, "#dfa382");
+        limb(sc, 52, 42, 60, 42, 5, "#dfa382");
+        px(sc, 58, 40, 6, 6, "#dfa382");
+
+        // Tamara en forma de "C" (mantenida la postura exacta)
+        px(sc, 34, 81, 5, 5, "#dfa382");
+        px(sc, 45, 82, 5, 5, "#cf9170");
+
+        limb(sc, 36, 81, 61, 60, 5, "#c4986a");
+        limb(sc, 47, 82, 65, 62, 4.5, "#b08458");
+
+        // Cabeza mirando al frente + pelo en la parte superior y trasera de su cabeza conectando al que cae
+        circ(sc, 73, 63, 5.5, "#dfa382");
+        px(sc, 67, 56, 11, 4, "#211619"); // Pelo arriba sobre su cabeza
+        px(sc, 66, 58, 5, 8, "#211619");  // Pelo atrás cubriendo el cráneo
+        px(sc, 75, 59, 3, 2, "#211619");  // Flequillo sutil arriba
+        px(sc, 76, 62, 2, 2, "#111");
+        px(sc, 77, 65, 2, 1, "#c46b6b");
+        limb(sc, 68, 66, 66, 94, 7, "#211619");
+        limb(sc, 71, 68, 70, 92, 4, "#211619");
+
+        limb(sc, 63, 61, 56, 51, 9, "#c4986a");
+        limb(sc, 56, 51, 57, 40, 9, "#c4986a");
+        px(sc, 54, 48, 4, 2, "#38251a"); px(sc, 56, 54, 4, 2, "#38251a");
+
+        limb(sc, 57, 40, 69, 23, 9.5, "#181924");
+        circ(sc, 71, 22, 5, "#181924");
+        limb(sc, 71, 22, 91, 30, 8, "#181924");
+        limb(sc, 74, 25, 92, 39, 7, "#181924");
+        px(sc, 89, 29, 7, 5, "#111116");
+        px(sc, 90, 38, 7, 5, "#111116");
+      }, 98, 38);
+
+      if (interactive) drawFireballChibi(c, 52, 154, 3, animT, false, 1.15);
+    }
+
+    else if (idx === 8) {
+      // 8. ¡Jefe! ROBOT IA (efecto de golpe simple sin las 3 líneas)
+      px(c, 0, 0, cw, 150, "#1f2333");
+      px(c, 0, 150, cw, 30, "#7d5d3e");
+
+      c.fillStyle = "#fff"; c.font = "8px monospace";
+      c.fillText("FIREBALL", 14, 16);
+      for (let i = 0; i < 5; i++) px(c, 14 + i * 11, 21, 8, 5, i < boss.catHP ? "#ff773d" : "#352f40");
+      c.fillText("ROBOT IA", 244, 16);
+      for (let i = 0; i < 5; i++) px(c, 244 + i * 11, 21, 8, 5, i < boss.robHP ? "#ff3b5c" : "#352f40");
+
+      const rx = Math.round(boss.robX) + (boss.hitT > 0 ? ((animT % 4) - 2) : 0);
+
+      if (boss.done) {
+        withOutline(c, sc => {
+          px(sc, 16, 30, 38, 8, "#7a1a1a");
+          px(sc, 24, 24, 20, 8, "#181820");
+        }, rx - 34, 118);
+        c.fillStyle = "#ff8fa3"; c.font = "bold 9px monospace"; c.fillText("X_X", rx - 6, 136);
+        circ(c, rx + Math.sin(animT*0.2)*6, 116, 5, "rgba(220,220,220,0.4)");
+      } else {
+        withOutline(c, sc => {
+          circ(sc, 22, 40, 8, "#1c1c22"); circ(sc, 58, 40, 8, "#1c1c22");
+          circ(sc, 22, 40, 4, "#4b4b54"); circ(sc, 58, 40, 4, "#4b4b54");
+          px(sc, 24, 28, 32, 14, "#d42626"); px(sc, 29, 32, 22, 8, "#16161c");
+          circ(sc, 35, 36, 4, "#cfd6e0"); circ(sc, 45, 36, 4, "#cfd6e0");
+          px(sc, 35, 36, 2, 2, "#111"); px(sc, 45, 36, 2, 2, "#111");
+          px(sc, 51, 24, 2, 10, "#3b82f6"); px(sc, 30, 25, 2, 8, "#facc15");
+          px(sc, 37, 20, 6, 8, "#c72626");
+          px(sc, 29, 9, 22, 12, "#16161e");
+          circ(sc, 39, 15, 4, "#2e3444"); circ(sc, 39, 15, 2, "#6fe3ff");
+        }, rx - 40, 102);
+      }
+
+      // Efecto simple de golpe al impactar (sin las 3 líneas)
+      if (boss.atkT > 0 && boss.slashX > 0) {
+        circ(c, boss.slashX - 6, boss.slashY - 4, 6, "rgba(255, 235, 90, 0.75)");
+        px(c, boss.slashX - 12, boss.slashY - 5, 12, 2, "#ffffff");
+        px(c, boss.slashX - 7, boss.slashY - 10, 2, 12, "#ffffff");
+      }
+
+      boss.blips.forEach(b => px(c, b.x - 4, b.y - 2, 8, 4, "#ff385c"));
+      if (interactive && (boss.inv % 6 < 4)) drawFireballChibi(c, boss.catX, boss.catY, 3, animT, false, 1.15, false, false, 0, boss.atkT);
+    }
+
+    else if (idx === 9) {
+      // 9. Halloween de Circo
+      px(c, 0, 0, cw, 150, "#130922");
+      circ(c, 160, 36, 22, "#ffea88");
+      px(c, 134, 28, 4, 2, "#130922"); px(c, 132, 26, 2, 2, "#130922"); px(c, 138, 26, 2, 2, "#130922");
+      px(c, 184, 44, 4, 2, "#130922"); px(c, 182, 42, 2, 2, "#130922"); px(c, 188, 42, 2, 2, "#130922");
+
+      circ(c, 36, 42, 4, "#ffe08a"); px(c, 35, 47, 2, 103, "#282236");
+      px(c, 37, 43, 6, 1, "#665a78"); px(c, 41, 45, 1, 6, "#665a78");
+      circ(c, 284, 42, 4, "#ffe08a"); px(c, 283, 47, 2, 103, "#282236");
+      px(c, 0, 150, cw, 30, "#3a3045");
+
+      [28, 142, 290].forEach(kx => {
+        circ(c, kx, 148, 6.5, "#ff6e00");
+        px(c, kx - 1, 141, 2, 2, "#2b6b22");
+        px(c, kx - 3, 147, 2, 2, "#ffe066"); px(c, kx + 1, 147, 2, 2, "#ffe066");
+        px(c, kx - 2, 151, 4, 1.5, "#ffe066");
+      });
+
+      withOutline(c, sc => {
+        limb(sc, 26, 62, 25, 84, 4.5, "#a81932"); limb(sc, 34, 62, 35, 84, 4.5, "#a81932");
+        for (let y = 64; y < 82; y += 3) { px(sc, 24, y, 3, 1, "#210910"); px(sc, 33, y, 3, 1, "#210910"); }
+        px(sc, 22, 84, 6, 4, "#111"); px(sc, 32, 84, 6, 4, "#111");
+        px(sc, 22, 54, 16, 9, "#282a30");
+        px(sc, 23, 33, 14, 21, "#16161c");
+        for (let x = 25; x <= 33; x += 3) px(sc, x, 34, 1.5, 19, "#ffffff");
+        limb(sc, 23, 36, 15, 42, 3, "#16161c"); limb(sc, 37, 36, 45, 42, 3, "#16161c");
+        circ(sc, 30, 24, 6, "#f6e4dc");
+        px(sc, 28, 23, 1.5, 5, "#a81932"); px(sc, 32, 23, 1.5, 5, "#a81932");
+        px(sc, 30, 25, 2, 2, "#a81932");
+        px(sc, 20, 15, 20, 12, "#ff6400");
+        px(sc, 26, 9, 8, 6, "#14141a"); px(sc, 24, 14, 12, 2, "#14141a");
+        px(sc, 23, 10, 3, 5, "rgba(20,20,26,0.6)");
+      }, 74, 63);
+
+      for (let k = 0; k < 3; k++) {
+        const a = animT * 0.14 + k * 2.09;
+        const bx = 104 + Math.cos(a) * 18;
+        const by = 84 + Math.sin(a) * 16;
+        circ(c, bx, by, 3.5, "#181022");
+        circ(c, bx, by, 2.5, "#ffffff");
+      }
+
+      withOutline(c, sc => {
+        limb(sc, 25, 65, 24, 84, 5, "#dfa382"); limb(sc, 35, 65, 36, 84, 5, "#dfa382");
+        px(sc, 23, 71, 3, 9, "#263636"); px(sc, 34, 71, 3, 9, "#263636");
+        px(sc, 20, 84, 8, 4, "#111"); px(sc, 32, 84, 8, 4, "#111");
+        px(sc, 20, 47, 10, 20, "#15151c"); px(sc, 30, 47, 10, 20, "#eae6dc");
+        px(sc, 21, 23, 18, 24, "#e0deda");
+        for (let y = 23; y < 47; y += 4) for (let x = 21; x < 39; x += 4) if (((x+y)/4)%2===0) px(sc, x, y, 4, 4, "#18181f");
+        px(sc, 27, 31, 4, 4, "#b01826");
+        limb(sc, 22, 28, 13, 36, 4.5, "#eae6dc");
+        limb(sc, 38, 28, 47, 36, 4.5, "#15151c");
+        px(sc, 23, 7, 14, 16, "#14141a"); px(sc, 25, 9, 10, 13, "#ffffff");
+        px(sc, 26, 12, 2.5, 4, "#111"); px(sc, 31, 12, 2.5, 4, "#111"); px(sc, 28, 16, 3, 6, "#111");
+        px(sc, 27, 2, 6, 5, "#25252d"); px(sc, 25, 6, 10, 2, "#ffffff");
+        px(sc, 28, 2, 2, 5, "#ffffff");
+      }, 194, 63);
+
+      for (let k = 0; k < 3; k++) {
+        const a = animT * 0.14 + k * 2.09;
+        const mx = 224 + Math.cos(a) * 21;
+        const my = 76 + Math.sin(a) * 18;
+        c.save();
+        c.translate(mx, my);
+        c.rotate(animT * 0.25 + k * 2);
+        px(c, -6, -2, 4, 3, "#4a3020");
+        px(c, -2, -2, 10, 3, "#e2e8f0");
+        px(c, 6, -3, 3, 2, "#ffffff");
+        c.restore();
+      }
+
+      if (interactive) drawFireballChibi(c, 160, 154, 0, animT, false, 1.2);
+    }
+
+    else if (idx === 10) {
+      // 10. ★ CAMPAMENTO: POSTURA SENTADA NATURAL DEL HOMBRE Y ABRAZO CLARO ★
+      px(c, 0, 0, cw, 130, "#090d21");
+      px(c, 0, 35, cw, 95, "#121936");
+      for (let i = 0; i < 44; i++) {
+        const sx = (i * 37 + 11) % cw, sy = (i * 23 + 7) % 88;
+        const on = ((animT + i * 7) % 40) < 28;
+        if (on) px(c, sx, sy, (i % 5 === 0) ? 2 : 1, (i % 5 === 0) ? 2 : 1, i % 3 === 0 ? "#ffeaa7" : "#ffffff");
+      }
+      const st = (animT * 3) % 280;
+      if (st < 110) {
+        px(c, 220 - st, 18 + st * 0.35, 3, 2, "#ffffff");
+        px(c, 224 - st, 16 + st * 0.35, 6, 1, "rgba(255,245,180,0.6)");
+      }
+      c.fillStyle = "#18223d";
+      c.beginPath(); c.moveTo(0,126); c.lineTo(55,68); c.lineTo(120,126); c.lineTo(195,54); c.lineTo(275,126); c.lineTo(320,86); c.lineTo(320,132); c.lineTo(0,132); c.fill();
+      px(c, 0, 126, cw, 54, "#1d3022");
+
+      withOutline(c, sc => {
+        sc.fillStyle = "#e66e25";
+        sc.beginPath(); sc.moveTo(10, 48); sc.lineTo(38, 12); sc.lineTo(66, 48); sc.closePath(); sc.fill();
+        sc.fillStyle = "#ffcf66";
+        sc.beginPath(); sc.moveTo(28, 48); sc.lineTo(38, 22); sc.lineTo(48, 48); sc.closePath(); sc.fill();
+      }, 36, 86);
+
+      for (let i = 0; i < 5; i++) {
+        const fh = 6 + ((i + Math.floor(animT / 4)) % 5);
+        px(c, 198 + i * 3, 138 - fh, 3, fh, i % 2 ? "#ff5511" : "#ffdd55");
+      }
+      px(c, 195, 138, 18, 4, "#52321e");
+
+      // Tronco o manta base donde se sientan
+      px(c, 114, 138, 54, 6, "#5e3d28");
+
+      // Pareja sentada de espaldas con postura natural y abrazo envolvente bien notorio
+      withOutline(c, sc => {
+        // David (izquierda): sentado con rodillas flectadas al costado izquierdo y espalda con hombros redondeados
+        limb(sc, 20, 36, 12, 41, 6, "#1b2438");   // Pierna/rodilla sentada izq
+        px(sc, 9, 40, 5, 3, "#111");               // Zapato sentado
+        limb(sc, 22, 26, 22, 37, 13, "#2c3d63");   // Espalda baja natural
+        limb(sc, 19, 24, 27, 24, 9, "#2c3d63");    // Hombros redondeados inclinados levemente hacia ella
+        px(sc, 19, 19, 5, 3, "#dfa382");           // Nuca
+        circ(sc, 21, 15, 5, "#181212");            // Cabeza corta de atrás
+        px(sc, 17, 17, 7, 2.5, "#3b2c23");         // Fade nuca
+
+        // Tamara (derecha): sentada pegadita a su hombro con polerón burdeo y pierna sentada
+        limb(sc, 39, 36, 47, 40, 5.5, "#1b2438");  // Pierna sentada derecha
+        px(sc, 45, 39, 5, 3, "#111");
+        limb(sc, 37, 26, 37, 37, 12, "#b34466");   // Torso polerón burdeo
+        limb(sc, 33, 25, 41, 25, 8, "#b34466");    // Hombros redondeados
+        circ(sc, 34, 17, 4.8, "#211619");          // Cabeza apoyada suavemente
+        limb(sc, 34, 19, 36, 33, 6.5, "#211619");  // Melena larga sobre la espalda
+
+        // Brazo de David rodeando claramente la espalda y hombro de Tamara (encima para verse nítido!)
+        limb(sc, 26, 24, 42, 26, 5.5, "#1a2540");  // Sombra contorno del brazo abrazando
+        limb(sc, 26, 24, 42, 26, 3.8, "#3a5080");  // Manga del abrazo sobre su espalda
+        circ(sc, 43, 26, 2.2, "#dfa382");          // Mano de David abrazando su hombro derecho
+      }, 108, 100);
+
+      if (interactive) drawFireballChibi(c, 248, 142, 1, animT, false, 1.15);
+
+      px(c, 48, 152, 224, 18, "rgba(18,13,34,0.88)");
+      c.fillStyle = "#ffd97a"; c.font = "8px monospace";
+      c.fillText("✨ ¡FELICES 3 MESES! CLIC PARA ABRIR CARTA 💌", 54, 164);
+    }
+  }
+
+  function drawCachedThumb(idx, x, y) {
+    if (!thumbCache.has(idx)) {
+      const tc = document.createElement("canvas");
+      tc.width = 320; tc.height = 180;
+      const tctx = tc.getContext("2d"); tctx.imageSmoothingEnabled = false;
+      renderMemoryScene(tctx, idx, 320, 180, 14, true);
+      thumbCache.set(idx, tc);
+    }
+    ctx.drawImage(thumbCache.get(idx), x, y, 140, 79);
+  }
+
+  // ================= MAPA =================
+  function drawMap() {
+    const topY = Math.floor(camY);
+    px(ctx, 0, 0, W, H, "#519c46");
+    const startTileY = Math.floor(topY / 24) * 24;
+    for (let y = startTileY; y < topY + H + 24; y += 24) {
+      const sy = y - topY;
+      for (let x = 0; x < W; x += 24) {
+        if (((x / 24 + y / 24) % 2) === 0) px(ctx, x, sy, 24, 24, "#4a9140");
+        if ((x * 7 + y * 13) % 19 === 0) { px(ctx, x + 6, sy + 8, 3, 2, "#ffe66d"); px(ctx, x + 7, sy + 7, 1, 4, "#fff"); }
+        if ((x * 11 + y * 5) % 23 === 0) px(ctx, x + 15, sy + 16, 3, 3, "#ff87ab");
+      }
+    }
+
+    if (topY + H > 2310) {
+      px(ctx, 0, 2335 - topY, W, 180, "#2977bd");
+      for (let x = 0; x < W; x += 32) px(ctx, x + ((t >> 3) % 12), 2360 - topY, 14, 2, "#85d0fc");
+      px(ctx, 180, 2315 - topY, 120, 120, "#9c6439");
+    }
+    if (topY < 260) {
+      px(ctx, 0, 0, W, Math.max(0, 240 - topY), "#121936");
+      for (let i = 0; i < 24; i++) px(ctx, (i * 41) % W, ((i * 29) % 120) - topY * 0.2, 2, 2, "#fff");
+    }
+
+    for (let y = startTileY; y < topY + H + 24; y += 24) {
+      if (y > 2335 || y < 110) continue;
+      const sy = y - topY;
+      const cx = 240 + Math.round(Math.sin(y * 0.008) * 18);
+      px(ctx, cx - 44, sy, 88, 24, "#b08757");
+      px(ctx, cx - 48, sy, 4, 24, "#735433"); px(ctx, cx + 44, sy, 4, 24, "#735433");
+      px(ctx, cx - 22 + ((y % 48) ? 8 : 0), sy + 6, 12, 8, "#cca97e");
+      px(ctx, cx + 10 - ((y % 48) ? 6 : 0), sy + 12, 10, 7, "#c29f73");
+    }
+
+    for (let y = 200; y < 2300; y += 110) {
+      if (y - topY < -60 || y - topY > H + 60) continue;
+      const sy = y - topY;
+      [54, 426].forEach((tx, idx) => {
+        const ty = sy + idx * 35;
+        px(ctx, tx - 5, ty - 10, 10, 16, "#6e4428");
+        circ(ctx, tx, ty - 24, 20, y < 440 ? "#285434" : "#2a6630");
+        circ(ctx, tx - 5, ty - 28, 12, y < 440 ? "#3b7549" : "#3c853f");
+      });
+      if (y % 220 === 200) {
+        px(ctx, 168, sy - 16, 10, 16, "#9aa3b2");
+        px(ctx, 166, sy - 22, 14, 7, "#ffdf70");
+      }
+    }
+
+    STOPS.forEach((s, i) => {
+      const sy = s.y - topY;
+      if (sy < -140 || sy > H + 140) return;
+      const near = Math.hypot(cat.x - s.x, cat.y - s.y) < 42;
+      circ(ctx, s.x, sy, 18, near ? "#ff9e42" : "#533d7a");
+      circ(ctx, s.x, sy, 13, near ? "#ffe38f" : "#2c1e45");
+      ctx.fillStyle = near ? "#181022" : "#fff";
+      ctx.font = "bold 9px monospace";
+      ctx.fillText(i === 10 ? "⛺" : String(i), s.x - (i >= 10 ? 6 : 3), sy + 3);
+
+      const sideX = (i % 2 === 0) ? 16 : 318;
+      const frameY = sy - 56;
+      px(ctx, sideX, frameY, 146, 85, "#ffb55c");
+      px(ctx, sideX + 2, frameY + 2, 142, 81, "#181022");
+      drawCachedThumb(i, sideX + 3, frameY + 3);
+
+      if (near && (t % 50) < 38) {
+        px(ctx, s.x - 58, sy - 34, 116, 14, "#181022");
+        ctx.fillStyle = "#6ef0be"; ctx.font = "bold 8px monospace";
+        ctx.fillText(i === 3 && watitaLocked ? "🐾 YA SE ESCAPÓ" : "⚡ ESPACIO / CLIC", s.x - 42, sy - 24);
+      }
+    });
+
+    drawFireballChibi(ctx, cat.x, cat.y - topY, cat.dir, t, cat.moving, 1.05);
+  }
+
+  // ================= MODAL ZOOM =================
+  function openStop(idx) {
+    if (idx === 3 && watitaLocked) {
+      sfxSlap();
+      return;
+    }
+    ensureAudio(); startMusic();
+    activeModal = idx;
+    zParticles = [];
+    const s = STOPS[idx];
+    document.getElementById("zm-title").textContent = s.name;
+    document.getElementById("zm-text").textContent = s.desc;
+    const btns = document.getElementById("zm-btns");
+    btns.innerHTML = "";
+
+    if (idx === 0) {
+      notebookClicks = 0;
+      sfxMeow();
+    } else if (idx === 2) {
+      const b = document.createElement("button");
+      b.className = "ctrl act"; b.textContent = "🔥 ¡Lanzar chispas & Miau!";
+      b.onclick = () => { sfxMeow(); for (let i = 0; i < 14; i++) zParticles.push({ x: 160, y: 78, vx: (Math.random()-0.5)*4, vy: -1-Math.random()*2.5, c: "#ffd447", life: 36 }); };
+      btns.appendChild(b);
+    } else if (idx === 3) {
+      watitaPets = 0; watitaSlap = 0; watitaFlee = false; watitaRunX = 160;
+      const b = document.createElement("button");
+      b.className = "ctrl act"; b.textContent = "🖐️ Hacer cariño en la watita";
+      b.onclick = petWatita;
+      btns.appendChild(b);
+    } else if (idx === 5) {
+      const b = document.createElement("button");
+      b.className = "ctrl act"; b.textContent = "👏 Aplaudir & Mandar Corazones";
+      b.onclick = () => { sfxHeart(); for (let i = 0; i < 10; i++) zParticles.push({ x: 64, y: 128, vx: 1.2 + Math.random()*2, vy: -1.4 - Math.random()*1.5, c: "#ff5c94", life: 46, heart: true }); };
+      btns.appendChild(b);
+    } else if (idx === 8) {
+      boss = { catX: 68, catY: 148, catVY: 0, catHP: 5, inv: 0, atkT: 0, slashX: 0, slashY: 0, robX: 244, robHP: 5, hitT: 0, cd: 60, blips: [], done: false };
+      const b1 = document.createElement("button"); b1.className = "ctrl"; b1.textContent = "▲ Saltar";
+      b1.onclick = () => { if (boss.catY >= 147) { boss.catVY = -4.2; tone(320, 0.12, "square", 0.05, 580); } };
+      const b2 = document.createElement("button"); b2.className = "ctrl act"; b2.textContent = "🐾 ¡Zarpazo al ROBOT IA!";
+      b2.onclick = attackBoss;
+      btns.append(b1, b2);
+    } else if (idx === 10) {
+      sfxHeart();
+      const b = document.createElement("button");
+      b.className = "ctrl act"; b.textContent = "💌 Abrir Carta de 3 Meses";
+      b.onclick = () => { closeZoom(); document.getElementById("letter-modal").classList.add("open"); };
+      btns.appendChild(b);
+    }
+
+    if (idx < 10) {
+      const nextB = document.createElement("button");
+      nextB.className = "ctrl go"; nextB.id = "btn-modal-next"; nextB.textContent = "Seguir caminando ▶";
+      nextB.onclick = () => { closeZoom(); jumpToStop(idx + 1); };
+      btns.appendChild(nextB);
+    }
+    const closeB = document.createElement("button");
+    closeB.className = "ctrl"; closeB.textContent = "Volver al mapa"; closeB.onclick = closeZoom;
+    btns.appendChild(closeB);
+    document.getElementById("zoom-modal").classList.add("open");
+  }
+
+  function closeZoom() { activeModal = null; document.getElementById("zoom-modal").classList.remove("open"); }
+  window.closeLetter = () => document.getElementById("letter-modal").classList.remove("open");
+
+  function petWatita() {
+    if (watitaFlee) return;
+    watitaPets++;
+    watitaSlap = 18;
+    sfxSlap();
+    if (watitaPets >= 5) {
+      watitaFlee = true;
+      watitaLocked = true;
+      watitaRunX = 160;
+      STOPS[3].hint = "Salió corriendo 🐾 (bloqueado)";
+      STOPS[3].desc = "Le tocaste mucho la watita... ¡salió corriendo y ya no deja volver!";
+      updateHUD();
+    }
+  }
+
+  function attackBoss() {
+    if (boss.done) return;
+    boss.atkT = 12;
+    boss.slashX = 0;
+    sfxMeow();
+    if (Math.abs(boss.catX - boss.robX) > 46) boss.catX += 34;
+
+    if (Math.abs(boss.catX - boss.robX) <= 62) {
+      boss.robHP = Math.max(0, boss.robHP - 1);
+      boss.hitT = 14;
+      boss.slashX = boss.robX;
+      boss.slashY = 132;
+      sfxHit();
+      for (let i = 0; i < 10; i++) zParticles.push({ x: boss.robX, y: 134, vx: (Math.random()-0.5)*4, vy: -Math.random()*3, c: "#ffee55", life: 28 });
+
+      if (boss.robHP === 0) {
+        boss.done = true;
+        boss.atkT = 0;
+        sfxHeart();
+        for (let i = 0; i < 16; i++) zParticles.push({ x: boss.robX, y: 134, vx: (Math.random()-0.5)*3.5, vy: -1.5 - Math.random()*2, c: "#ff699c", life: 52, heart: true });
+        const btns = document.getElementById("zm-btns");
+        const winB = document.createElement("button");
+        winB.className = "ctrl go";
+        winB.textContent = "🏆 ¡Robot vencido! Continuar ▶";
+        winB.onclick = () => { closeZoom(); jumpToStop(9); };
+        btns.prepend(winB);
+      }
+    }
+  }
+
+  zCanvas.onclick = () => {
+    if (activeModal === 0) {
+      notebookClicks++;
+      sfxMeow();
+    } else if (activeModal === 3) petWatita();
+    else if (activeModal === 8) attackBoss();
+    else if (activeModal === 10) { closeZoom(); document.getElementById("letter-modal").classList.add("open"); }
+    else if (activeModal === 5) { sfxHeart(); for (let i = 0; i < 8; i++) zParticles.push({ x: 64, y: 128, vx: 1.4+Math.random()*2, vy: -1.4-Math.random(), c: "#ff5c94", life: 42, heart: true }); }
+    else sfxMeow();
+  };
+
+  // ================= CONTROLES =================
+  canvas.addEventListener("wheel", (e) => {
+    e.preventDefault(); ensureAudio(); startMusic();
+    camY = Math.max(0, Math.min(MAP_H - H, camY + e.deltaY * 0.65));
+    const targetY = camY + H * 0.56;
+    cat.dir = e.deltaY < 0 ? 2 : 0;
+    cat.y += (targetY - cat.y) * 0.35;
+    cat.x = 240 + Math.round(Math.sin(cat.y * 0.008) * 18);
+    cat.moving = true;
+    setTimeout(() => { cat.moving = false; }, 120);
+    updateHUD();
+  }, { passive: false });
+
+  canvas.addEventListener("click", (e) => {
+    ensureAudio(); startMusic();
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width * W;
+    const my = (e.clientY - rect.top) / rect.height * H + camY;
+    for (let i = 0; i < STOPS.length; i++) {
+      const s = STOPS[i];
+      if (Math.hypot(mx - s.x, my - s.y) < 38 || (mx > 16 && mx < 162 && i % 2 === 0 && Math.abs(my - (s.y - 15)) < 48) || (mx > 318 && mx < 464 && i % 2 === 1 && Math.abs(my - (s.y - 15)) < 48)) {
+        cat.x = s.x; cat.y = s.y + 20; updateHUD(); openStop(i); return;
+      }
+    }
+    targetWalk = { x: Math.max(60, Math.min(MAP_W - 60, mx)), y: Math.max(85, Math.min(MAP_H - 85, my)) };
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (activeModal !== null) {
+      if (e.key === "Escape") closeZoom();
+      if (activeModal === 8) {
+        if (e.key === "ArrowLeft" || e.key === "a") boss.catX = Math.max(24, boss.catX - 10);
+        if (e.key === "ArrowRight" || e.key === "d") boss.catX = Math.min(280, boss.catX + 10);
+        if ((e.key === "ArrowUp" || e.key === "w") && boss.catY >= 147) boss.catVY = -4.2;
+        if (e.key === " " || e.key === "Enter") { e.preventDefault(); attackBoss(); }
+      } else if (e.key === " " || e.key === "Enter") { e.preventDefault(); zCanvas.click(); }
+      return;
+    }
+    if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") keys.u = true;
+    if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") keys.d = true;
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.l = true;
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.r = true;
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); openStop(activeStop); }
+  });
+  window.addEventListener("keyup", (e) => {
+    if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") keys.u = false;
+    if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") keys.d = false;
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.l = false;
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.r = false;
+  });
+
+  const hold = (id, prop) => {
+    const el = document.getElementById(id);
+    const on = e => { e.preventDefault(); ensureAudio(); startMusic(); keys[prop] = true; };
+    const off = () => keys[prop] = false;
+    el.addEventListener("mousedown", on); el.addEventListener("touchstart", on);
+    el.addEventListener("mouseup", off); el.addEventListener("mouseleave", off); el.addEventListener("touchend", off);
+  };
+  hold("b-left", "l"); hold("b-right", "r"); hold("b-up", "u"); hold("b-down", "d");
+  document.getElementById("b-act").onclick = () => openStop(activeStop);
+  document.getElementById("b-next").onclick = () => jumpToStop(Math.min(10, activeStop + 1));
+
+  // ================= BUCLE PRINCIPAL =================
+  function tick() {
+    t++;
+    if (activeModal === null) {
+      let dx = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
+      let dy = (keys.d ? 1 : 0) - (keys.u ? 1 : 0);
+      if (dx !== 0 || dy !== 0) targetWalk = null;
+      if (targetWalk) {
+        const tx = targetWalk.x - cat.x, ty = targetWalk.y - cat.y, dist = Math.hypot(tx, ty);
+        if (dist < 4) targetWalk = null; else { dx = tx / dist; dy = ty / dist; }
+      }
+      if (dx !== 0 || dy !== 0) {
+        const sp = 2.4;
+        cat.x = Math.max(62, Math.min(MAP_W - 62, cat.x + dx * sp));
+        cat.y = Math.max(85, Math.min(MAP_H - 85, cat.y + dy * sp));
+        cat.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 3) : (dy < 0 ? 2 : 0);
+        cat.moving = true;
+        camY += (Math.max(0, Math.min(MAP_H - H, cat.y - H * 0.56)) - camY) * 0.14;
+        updateHUD();
+      } else cat.moving = false;
+
+      ctx.clearRect(0, 0, W, H);
+      drawMap();
+    } else {
+      if (watitaSlap > 0) watitaSlap--;
+      if (activeModal === 3 && watitaFlee) {
+        watitaRunX += 5.5;
+        if (watitaRunX > 350) {
+          watitaFlee = false;
+          closeZoom();
+          return requestAnimationFrame(tick);
+        }
+      }
+      if (activeModal === 8) {
+        if (boss.atkT > 0) boss.atkT--;
+        if (boss.inv > 0) boss.inv--;
+        if (boss.hitT > 0) boss.hitT--;
+        boss.catVY += 0.28; boss.catY += boss.catVY;
+        if (boss.catY >= 148) { boss.catY = 148; boss.catVY = 0; }
+
+        if (!boss.done) {
+          boss.robX = 244 + Math.sin(t * 0.04) * 18;
+          if (--boss.cd <= 0) { boss.cd = 75; boss.blips.push({ x: boss.robX - 16, y: 138, vx: -2.1 }); }
+          boss.blips.forEach(b => {
+            b.x += b.vx;
+            if (boss.inv === 0 && Math.abs(b.x - boss.catX) < 12 && Math.abs(b.y - (boss.catY - 8)) < 10) {
+              b.x = -99; boss.catHP = Math.max(1, boss.catHP - 1); boss.inv = 36; boss.catVY = -2.4; sfxHit();
+            }
+          });
+          boss.blips = boss.blips.filter(b => b.x > 0);
+        }
+      }
+      renderMemoryScene(zCtx, activeModal, 320, 180, t, true);
+      zParticles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.life--;
+        if (p.heart) {
+          px(zCtx, p.x-2, p.y-2, 2, 2, p.c); px(zCtx, p.x+1, p.y-2, 2, 2, p.c);
+          px(zCtx, p.x-2, p.y, 5, 2, p.c); px(zCtx, p.x-1, p.y+2, 3, 1, p.c);
+        } else px(zCtx, p.x, p.y, 2, 2, p.c);
+      });
+      zParticles = zParticles.filter(p => p.life > 0);
+    }
+    requestAnimationFrame(tick);
+  }
+  updateHUD();
+  tick();
+
+  // ================= MODO AR QUEST 3 (WebXR) =================
+  let arSceneIdx = 0;
+  document.getElementById("btn-ar").onclick = async () => {
+    const modal = document.getElementById("ar-modal");
+    const txt = document.getElementById("ar-status-text");
+    const btnXR = document.getElementById("btn-start-webxr");
+    modal.classList.add("open");
+    if (navigator.xr && await navigator.xr.isSessionSupported("immersive-ar").catch(() => false)) {
+      txt.textContent = "✅ ¡Dispositivo compatible con WebXR Passthrough AR detectado!";
+      btnXR.style.display = "inline-block";
+    } else {
+      txt.textContent = "ℹ️ Usa la Vista Previa 3D aquí, o abre este archivo por HTTPS en tus Meta Quest 3 para ver los recuerdos flotando en tu pieza.";
+      btnXR.style.display = "none";
+    }
+  };
+
+  async function launchThreeMode(useWebXR) {
+    document.getElementById("ar-modal").classList.remove("open");
+    const overlay = document.getElementById("ar-overlay");
+    const hud = document.getElementById("ar-hud");
+    overlay.innerHTML = "<p style='color:#fff;text-align:center;padding-top:42vh'>Cargando galería Pixel Art 3D...</p>";
+    overlay.classList.add("open"); hud.classList.add("open");
+
+    try {
+      const THREE = await import("https://unpkg.com/three@0.169.0/build/three.module.js");
+      overlay.innerHTML = "";
+      const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = useWebXR;
+      overlay.appendChild(renderer.domElement);
+
+      const threeScene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.05, 50);
+      camera.position.set(0, 1.4, 2.2);
+
+      const group = new THREE.Group();
+      threeScene.add(group);
+      const cards = [];
+
+      for (let i = 0; i < 11; i++) {
+        const snap = document.createElement("canvas");
+        snap.width = 320; snap.height = 180;
+        const sc = snap.getContext("2d"); sc.imageSmoothingEnabled = false;
+        renderMemoryScene(sc, i, 320, 180, 14, true);
+
+        const tex = new THREE.CanvasTexture(snap);
+        tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+        const mesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.28, 0.72),
+          new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+        );
+        const angle = (i - 5) * 0.41;
+        mesh.position.set(Math.sin(angle) * 2.2, 1.38 + (i % 2) * 0.1, -Math.cos(angle) * 2.2 + 0.4);
+        mesh.lookAt(0, 1.38, 0.8);
+        mesh.userData.baseY = mesh.position.y;
+        group.add(mesh); cards.push(mesh);
+      }
+
+      document.getElementById("ar-prev").onclick = () => { arSceneIdx = (arSceneIdx + 10) % 11; };
+      document.getElementById("ar-next").onclick = () => { arSceneIdx = (arSceneIdx + 1) % 11; };
+
+      let session = null;
+      if (useWebXR) {
+        session = await navigator.xr.requestSession("immersive-ar", { optionalFeatures: ["local-floor"] });
+        session.addEventListener("select", () => { arSceneIdx = (arSceneIdx + 1) % 11; });
+        await renderer.xr.setSession(session);
+      }
+
+      let clk = 0;
+      renderer.setAnimationLoop(() => {
+        clk += 0.03;
+        cards.forEach((c, i) => { c.position.y = c.userData.baseY + Math.sin(clk + i) * 0.04; });
+        if (!useWebXR) group.rotation.y += ((-(arSceneIdx - 5) * 0.41) - group.rotation.y) * 0.08;
+        renderer.render(threeScene, camera);
+      });
+
+      document.getElementById("ar-exit").onclick = async () => {
+        renderer.setAnimationLoop(null);
+        if (session) await session.end().catch(() => {});
+        overlay.classList.remove("open"); hud.classList.remove("open"); overlay.innerHTML = "";
+      };
+    } catch (err) {
+      overlay.innerHTML = `<p style='color:#ff9e9e;padding:24px;text-align:center'>Error al abrir vista 3D/AR: ${err.message}</p>`;
+    }
+  }
+
+  window.openARPreview = () => launchThreeMode(false);
+  document.getElementById("btn-start-3d").onclick = () => launchThreeMode(false);
+  document.getElementById("btn-start-webxr").onclick = () => launchThreeMode(true);
+})();
+</script>
+</body>
+</html>
